@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # apache-top
@@ -19,13 +19,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 from distutils.version import StrictVersion
 import operator
 import sys
-import urllib
+import requests
 import curses
-import traceback
 import getopt
 import time
 import re
@@ -168,7 +167,7 @@ class ApacheStatusParser(HTMLParser):
             process[9] = eval(process[9])
 
 def usage(exit = 1):
-    print main.__doc__
+    print(main.__doc__)
     sys.exit(exit)
 
 def print_screen(screen, url, show_scoreboard, apache_version):
@@ -251,8 +250,8 @@ def print_screen(screen, url, show_scoreboard, apache_version):
 
             data = ApacheStatusParser()
             data.set_apache_version(apache_version)
-            statusdata = urllib.urlopen(url).read()
-            data.feed(statusdata)
+            statusdata = requests.get(url)
+            data.feed(statusdata.text)
             data.eval_data()
             #width = curses.tigetnum('cols') or 80
             #height = curses.tigetnum('lines') or 24
@@ -302,17 +301,17 @@ def print_screen(screen, url, show_scoreboard, apache_version):
 
             # imprimim el scoreboard
             for num in range(0,len(data.scoreboard_data[0]),width):
-                 screen.addstr(y+4+num/width,0, data.scoreboard_data[0][num:num+width])
+                screen.addstr(int(y+4+num/width), 0, data.scoreboard_data[0][num:num+width])
 
             if len(message) > 0:
-                screen.addstr(y+5+num/width,0,message, curses.A_BOLD | curses.A_REVERSE)
+                screen.addstr(int(y+5+num/width),0,message, curses.A_BOLD | curses.A_REVERSE)
                 message = ""
 
             columns = [ 1, 3, 5, 4, 11, 10, 12 ]
             if data.status_format > 2:
                 columns = [ 1, 3, 5, 4, 13, 11, 14 ]
 
-            print_proceses(y+6+num/width,0,screen, data.proceses_data, columns=columns, sort=sort, reverse=reverse, width=width, show_only_active=show_only_active )
+            print_proceses(int(y+6+num/width),0,screen, data.proceses_data, columns=columns, sort=sort, reverse=reverse, width=width, show_only_active=show_only_active )
 
             #screen.hline(2, 1, curses.ACS_HLINE, 77)
             screen.refresh()
@@ -438,15 +437,15 @@ if __name__ == "__main__":
             usage
 
     if url == None:
-        print "*** ERROR: Url missing\n"
+        print("*** ERROR: Url missing\n")
         usage()
 
     # detect apache version
     try:
-        statusdata = urllib.urlopen(url).read()
-        apache_version = re.search('Server Version: Apache/([^ ]+)', statusdata).group(1)
+        statusdata = requests.get(url)
+        apache_version = re.search('Server Version: Apache/([^ ]+)', statusdata.text).group(1)
     except:
-        print "ERROR parsing the data. Please, make sure you are alowed to read the server-status page and you have ExtendedStatus flag activated"
+        print("ERROR parsing the data. Please, make sure you are alowed to read the server-status page and you have ExtendedStatus flag activated")
 
     try:
         # Initialize curses
@@ -478,4 +477,4 @@ if __name__ == "__main__":
         curses.nocbreak()
         curses.endwin()
         #traceback.print_exc()           # Print the exception
-        print "ERROR parsing the data. Please, make sure you are alowed to read the server-status page and you have ExtendedStatus flag activated"
+        print("ERROR parsing the data. Please, make sure you are alowed to read the server-status page and you have ExtendedStatus flag activated")
