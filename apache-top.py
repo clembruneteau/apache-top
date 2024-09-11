@@ -323,7 +323,7 @@ def print_screen(screen, url, show_scoreboard, apache_version):
             pass
 
 def print_proceses(y,x,screen, proceses, columns, sort, reverse, width, show_only_active = True):
-    header = "PID   M SS     CPU  VHost           IP              Request"
+    header = "PID     M SS     CPU  VHost           IP              Request"
     screen.addstr(y,x,header + " "*(width-len(header)), curses.A_REVERSE)
 
     n = 1
@@ -345,7 +345,7 @@ def print_process(y,x,screen,process,columns,show_only_active,width):
             screen.addstr(y,x, " "*width)
             n = x;
             screen.addstr(y,n, str(process[columns[0]])) # SS
-            n = n+ 6
+            n = n+ 8
             screen.addstr(y,n, process[columns[1]]) # M
             n = n+ 2
             screen.addstr(y,n, str(process[columns[2]])) # PID
