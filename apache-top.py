@@ -85,6 +85,13 @@ class ApacheStatusParser(HTMLParser):
         else:
             self.status_format = 1
 
+    def set_server_mpm(self, mpm):
+        self.server_mpm = mpm
+
+        if self.server_mpm == 'prefork':
+            self.scoreboard = 3
+            self.proceses = 4
+
     def handle_starttag(self, tag, attrs):
         if tag == "b":
             return
@@ -170,7 +177,7 @@ def usage(exit = 1):
     print(main.__doc__)
     sys.exit(exit)
 
-def print_screen(screen, url, show_scoreboard, apache_version):
+def print_screen(screen, url, show_scoreboard, apache_version, server_mpm):
     screen = stdscr.subwin(0, 0)
     screen.nodelay(1)
 
@@ -250,6 +257,7 @@ def print_screen(screen, url, show_scoreboard, apache_version):
 
             data = ApacheStatusParser()
             data.set_apache_version(apache_version)
+            data.set_server_mpm(server_mpm)
             statusdata = requests.get(url)
             data.feed(statusdata.text)
             data.eval_data()
@@ -370,7 +378,7 @@ def print_process(y,x,screen,process,columns,show_only_active,width):
     else:
         return 0
 
-def main(url, stdscr, show_scoreboard, apache_version):
+def main(url, stdscr, show_scoreboard, apache_version, server_mpm):
     """Shows the actual status of the Apache web server using the server-status
 url. It needs the ExtendedStatus flag
 
@@ -412,7 +420,7 @@ url. It needs the ExtendedStatus flag
     }
 
     try:
-        print_screen(stdscr,url,show_scoreboard,apache_version)
+        print_screen(stdscr,url,show_scoreboard,apache_version,server_mpm)
     except:
         raise
 
@@ -444,6 +452,7 @@ if __name__ == "__main__":
     try:
         statusdata = requests.get(url)
         apache_version = re.search('Server Version: Apache/([^ ]+)', statusdata.text).group(1)
+        server_mpm = re.search('Server MPM: ([a-z]*)', statusdata.text).group(1)
     except:
         print("ERROR parsing the data. Please, make sure you are alowed to read the server-status page and you have ExtendedStatus flag activated")
 
@@ -460,7 +469,7 @@ if __name__ == "__main__":
         # a special value like curses.KEY_LEFT will be returned
         stdscr.keypad(1)
         try:
-            main(url,stdscr,show_scoreboard,apache_version)                    # Enter the main loop
+            main(url,stdscr,show_scoreboard,apache_version,server_mpm)                    # Enter the main loop
         except:
             raise
         # Set everything back to normal
